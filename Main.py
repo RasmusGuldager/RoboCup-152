@@ -8,13 +8,27 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
 
-# This program requires LEGO EV3 MicroPython v2.0 or higher.
-# Click "Open user guide" on the EV3 extension tab for more information.
-
-
-# Create your objects here.
+# Initialize the EV3 Brick.
 ev3 = EV3Brick()
 
+# Initialize the motors.
+left_motor = Motor(Port.A)
+right_motor = Motor(Port.B)
 
-# Write your program here.
-ev3.speaker.beep()
+# Initialize the drive base.
+robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=124)
+
+# Afstandssensor og farvesensor
+Afstandssensor = UltrasonicSensor(Port.S4)
+Farvesensor = ColorSensor(Port.S3)
+
+def checkColor():
+    return Farvesensor.reflection()
+
+def checkDist():
+    Afstandssensor.distance()
+
+
+
+
+
