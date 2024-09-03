@@ -26,9 +26,21 @@ def checkColor():
     return Farvesensor.reflection()
 
 def checkDist():
-    Afstandssensor.distance()
+    return Afstandssensor.distance()
 
 
+angle = 10
+speed = 100
+
+
+while True:
+    color = checkColor()
+    if color > 50:
+        right_motor.run(-300)
+        left_motor.run(-200)
+    else:
+        left_motor.run(-300)
+        right_motor.run(-200)
 
 
 
