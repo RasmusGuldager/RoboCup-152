@@ -36,16 +36,16 @@ def checkAngle():
 
 def colorControl():
     while True:
-        if touchSensor.pressed and colorstage == 1:
+        if touchSensor.pressed() and colorStage == 1:
             white = checkColor()
             ev3.spreaker.WHITE()
-            colorstage += 1
-        elif touchSensor.pressed and colorstage == 2:
-            Grey = checkColor()
+            colorStage += 1
+        elif touchSensor.pressed() and colorStage == 2:
+            grey = checkColor()
             ev3.speaker.GREY()
-            colorstage += 1
-        elif touchSensor.pressed and colorstage == 3:
-            Black = checkColor()
+            colorStage += 1
+        elif touchSensor.pressed() and colorStage == 3:
+            black = checkColor()
             ev3.speaker.BLACK()
             stage += 1
             stageControl()
@@ -55,7 +55,10 @@ def colorControl():
 
 # Definér variabler
 stage = 0
-colorstage = 1
+white = 0
+grey = 0
+black = 0
+colorStage = 1
 gyroSensor.reset_angle(0)
 
 # Funktion til at styre hvilket stadie på banen robotten er nået til
