@@ -34,22 +34,17 @@ def checkDist():
 def checkAngle():
     return gyroSensor.angle()
 
-# Definér variabler
-stage = 0
-gyroSensor.reset_angle(0)
-
 def colorControl():
-    colorStage = 1
     while True:
-        if touchSensor.pressed and colorStage == 1:
+        if touchSensor.pressed and colorstage == 1:
             white = checkColor()
-            ev3.speaker.WHITE()
-            colorStage += 1
-        elif touchSensor.pressed and colorStage == 2:
+            ev3.spreaker.WHITE()
+            colorstage += 1
+        elif touchSensor.pressed and colorstage == 2:
             Grey = checkColor()
             ev3.speaker.GREY()
-            colorStage += 1
-        elif touchSensor.pressed and colorStage == 3:
+            colorstage += 1
+        elif touchSensor.pressed and colorstage == 3:
             Black = checkColor()
             ev3.speaker.BLACK()
             stage += 1
@@ -57,6 +52,11 @@ def colorControl():
             break
 
             
+
+# Definér variabler
+stage = 0
+colorstage = 1
+gyroSensor.reset_angle(0)
 
 # Funktion til at styre hvilket stadie på banen robotten er nået til
 def stageControl():
@@ -77,4 +77,3 @@ def stage1():
 
 
 stageControl() 
-
