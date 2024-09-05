@@ -12,19 +12,19 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 ev3 = EV3Brick()
 
 # Robottens motorer initialiseres
-left_motor = Motor(Port.A)
-right_motor = Motor(Port.B)
+left_motor = Motor(Port.B)
+right_motor = Motor(Port.A)
 
 # En drivebase for robotten initialiseres
 robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=124)
 
 # Afstandssensor og farvesensor initialiseres
-distanceSensor = UltrasonicSensor(Port.S4)
-colorSensor = ColorSensor(Port.S3)
+colorSensor = ColorSensor(Port.S1)
 gyroSensor = GyroSensor(Port.S2)
-touchSensor = TouchSensor(Port.S1)
+touchSensor = TouchSensor(Port.S3)
+distanceSensor = UltrasonicSensor(Port.S4)
 
-# Funktioner som tjekker farvereflektion og afstand initialiseres
+# Funktioner som tjekker farvereflektion, afstand og rumlig orientering initialiseres
 def CheckColor():
     return colorSensor.reflection()
 
@@ -34,6 +34,8 @@ def CheckDist():
 def CheckAngle():
     return gyroSensor.angle()
 
+
+# Funktion som bruges til at kalibrere robottens farvesensor efter farverne på banen
 def ColorControl():
     global white
     global black
@@ -58,15 +60,21 @@ def FollowLine():
     global stage
     global right_motor
     global left_motor
+    counter = 0
     while True:
         color = CheckColor()
-        if color >= white - 10:
-            right_motor.run(-300)
-            left_motor.run(-200)
-        elif color < white - 10 and color > black + 10:
-            right_motor.run(-200)
+        if color >= white - 10 and counter % 2 == 0:
+            right_motor.run(-400)
             left_motor.run(-300)
-        else: break
+            counter += 1
+            wait(500)
+        elif color >= white - 10 and counter % 2 == 1:
+            right_motor.run(-300)
+            left_motor.run(-400)
+            counter += 1
+            wait(500)
+        elif color < black + 10: 
+            break
     robot.stop()
     stage += 1
     StageControl()
@@ -89,6 +97,93 @@ def StageControl():
         Stage2()
     elif stage == 3:
         Stage3()
+    elif stage == 4:
+        Stage4()
+    elif stage == 5:
+        Stage5()
+    elif stage == 6:
+        Stage6()
+    elif stage == 7:
+        Stage7()
+    elif stage == 8:
+        Stage8()
+    elif stage == 9:
+        Stage9()
+    elif stage == 10:
+        Stage10()
+    elif stage == 11:
+        Stage11()
+    elif stage == 12:
+        Stage12()
+    elif stage == 13:
+        Stage13()
+    elif stage == 14:
+        Stage14()
 
+# Del ét af brudt streg
+def Stage1():
+    FollowLine()
 
- 
+# Del to af brudt streg
+def Stage2():
+    robot.turn(-30)
+    robot.straight(-400)
+    robot.turn(30)
+    robot.stop()
+    FollowLine()
+
+# 180 grader sving
+def Stage3():
+    robot.turn(30)
+    robot.straight(-400)
+    robot.turn(-30)
+    robot.stop()
+    FollowLine()
+
+# Flyt flaske
+def Stage4():
+    pass
+
+# Venstresving over til vippen
+def Stage5():
+    pass
+
+# Vippen
+def Stage6():
+    pass
+
+# Parallelle streger
+def Stage7():
+    pass
+
+# Venstresving over til dartskive
+def Stage8():
+    pass
+
+# Dartskive
+def Stage9():
+    pass
+
+# Fra dartskive over til rundt om flasken
+def Stage10():
+    pass
+
+# Rundt om flasken #1
+def Stage11():
+    pass
+
+# Zig-zag rundt om muren
+def Stage12():
+    pass
+
+# Rundt om flasken #2
+def Stage13():
+    pass
+
+# Landingsbane
+def Stage14():
+    pass
+
+StageControl()
+
+            
