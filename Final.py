@@ -25,58 +25,90 @@ gyroSensor = GyroSensor(Port.S2)
 touchSensor = TouchSensor(Port.S1)
 
 # Funktioner som tjekker farvereflektion og afstand initialiseres
-def checkColor():
-    return distanceSensor.reflection()
+def CheckColor():
+    return colorSensor.reflection()
 
-def checkDist():
-    return colorSensor.distance()
+def CheckDist():
+    return distanceSensor.distance()
 
-def checkAngle():
+def CheckAngle():
     return gyroSensor.angle()
 
-def colorControl():
+def ColorControl():
+    global white
+    global black
+    global colorStage
+    global stage
     while True:
         if touchSensor.pressed() and colorStage == 1:
-            white = checkColor()
-            ev3.spreaker.WHITE()
+            white = CheckColor()
+            ev3.speaker.say("White " + str(white))
             colorStage += 1
         elif touchSensor.pressed() and colorStage == 2:
-            grey = checkColor()
-            ev3.speaker.GREY()
-            colorStage += 1
-        elif touchSensor.pressed() and colorStage == 3:
-            black = checkColor()
-            ev3.speaker.BLACK()
-            stage += 1
-            stageControl()
             break
+    black = CheckColor()
+    ev3.speaker.say("Black " + str(black))
+    stage += 1
+    wait(5000)
+    StageControl()
 
+def FollowLine():
+    global white
+    global black
+    global stage
+    global right_motor
+    global left_motor
+    while True:
+        color = CheckColor()
+        if color >= white - 10:
+            right_motor.run(-300)
+            left_motor.run(-200)
+        elif color < white - 10 and color > black + 10:
+            right_motor.run(-200)
+            left_motor.run(-300)
+        else: break
+    robot.stop()
+    stage += 1
+    StageControl()
             
 
 # Definér variabler
 stage = 0
-white = 0
-grey = 0
-black = 0
+white = 75
+black = 6
 colorStage = 1
 gyroSensor.reset_angle(0)
 
 # Funktion til at styre hvilket stadie på banen robotten er nået til
-def stageControl():
+def StageControl():
     if stage == 0:
-        colorControl()
+        ColorControl()
+    elif stage == 1:
+        Stage1()
+    elif stage == 2:
+        Stage2()
+    elif stage == 3:
+        Stage3()
 
 
-# Algoritme som får robotten til at følge en lige linje
-def stage1():
-    while True:
-        color = checkColor()
-        if color > 50:
-            right_motor.run(-300)
-            left_motor.run(-200)
-        else:
-            left_motor.run(-300)
-            right_motor.run(-200)
+def Stage1():
+    FollowLine()
+
+def Stage2():
+    robot.turn(-30)
+    robot.straight(-400)
+    robot.turn(30)
+    robot.stop()
+    FollowLine()
 
 
-stageControl() 
+def Stage3():
+    robot.turn(30)
+    robot.straight(-400)
+    robot.turn(-30)
+    robot.stop()
+    FollowLine()
+
+
+
+StageControl()
