@@ -33,25 +33,7 @@ last_error = 0
 def main():
     global integral, last_error  # Declare global to modify them inside the function
 
-    while True:
-        color =line_sensor.reflection()
-        if color < BLACK:
-            left_motor.run(0)
-            right_motor.run(0)
-            break
-        error = color - threshold
-        integral = integral + error
-        derivative = error - last_error
 
-
-        turn_rate = PROPORTIONAL_GAIN * error + INTERGRAL_GAIN * integral + DERIVATIVE_GAIN * derivative
-
-        motor_speedlog.log(error, integral, derivative, turn_rate)
-
-        left_motor.run(DRIVE_SPEED-turn_rate)
-        right_motor.run(DRIVE_SPEED+turn_rate)
-
-        last_error = error
 
 
 

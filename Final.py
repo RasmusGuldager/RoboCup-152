@@ -12,68 +12,170 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 ev3 = EV3Brick()
 
 # Robottens motorer initialiseres
-left_motor = Motor(Port.A)
-right_motor = Motor(Port.B)
+left_motor = Motor(Port.B)
+right_motor = Motor(Port.A)
 
 # En drivebase for robotten initialiseres
 robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=124)
 
 # Afstandssensor og farvesensor initialiseres
-distanceSensor = UltrasonicSensor(Port.S4)
-colorSensor = ColorSensor(Port.S3)
+colorSensor = ColorSensor(Port.S1)
 gyroSensor = GyroSensor(Port.S2)
-touchSensor = TouchSensor(Port.S1)
+touchSensor = TouchSensor(Port.S3)
+distanceSensor = UltrasonicSensor(Port.S4)
 
-# Funktioner som tjekker farvereflektion og afstand initialiseres
-def checkColor():
-    return distanceSensor.reflection()
+# Funktioner som tjekker farvereflektion, afstand og rumlig orientering initialiseres
+def CheckColor():
+    return colorSensor.reflection()
 
-def checkDist():
-    return colorSensor.distance()
+def CheckDist():
+    return distanceSensor.distance()
 
-def checkAngle():
+def CheckAngle():
     return gyroSensor.angle()
 
-def colorControl():
-    while True:
-        if touchSensor.pressed and colorstage == 1:
-            white = checkColor()
-            ev3.spreaker.WHITE()
-            colorstage += 1
-        elif touchSensor.pressed and colorstage == 2:
-            Grey = checkColor()
-            ev3.speaker.GREY()
-            colorstage += 1
-        elif touchSensor.pressed and colorstage == 3:
-            Black = checkColor()
-            ev3.speaker.BLACK()
-            stage += 1
-            stageControl()
-            break
 
+# Funktion som bruges til at kalibrere robottens farvesensor efter farverne på banen
+def ColorControl():
+    global white
+    global black
+    global colorStage
+    global stage
+    while True:
+        if touchSensor.pressed() and colorStage == 1:
+            white = CheckColor()
+            ev3.speaker.say("White " + str(white))
+            colorStage += 1
+        elif touchSensor.pressed() and colorStage == 2:
+            break
+    black = CheckColor()
+    ev3.speaker.say("Black " + str(black))
+    stage += 1
+    wait(5000)
+    StageControl()
+
+def FollowLine():
+    global white
+    global black
+    global stage
+    global right_motor
+    global left_motor
+    while True:
+        color = CheckColor()
+        if color >= white - 10:
+            right_motor.run(-300)
+            left_motor.run(-200)
+        elif color < white - 10 and color > black + 10:
+            right_motor.run(-200)
+            left_motor.run(-300)
+        else: break
+    robot.stop()
+    stage += 1
+    StageControl()
             
 
 # Definér variabler
 stage = 0
-colorstage = 1
+white = 75
+black = 6
+colorStage = 1
 gyroSensor.reset_angle(0)
 
 # Funktion til at styre hvilket stadie på banen robotten er nået til
-def stageControl():
+def StageControl():
     if stage == 0:
-        colorControl()
+        ColorControl()
+    elif stage == 1:
+        Stage1()
+    elif stage == 2:
+        Stage2()
+    elif stage == 3:
+        Stage3()
+    elif stage == 4:
+        Stage4()
+    elif stage == 5:
+        Stage5()
+    elif stage == 6:
+        Stage6()
+    elif stage == 7:
+        Stage7()
+    elif stage == 8:
+        Stage8()
+    elif stage == 9:
+        Stage9()
+    elif stage == 10:
+        Stage10()
+    elif stage == 11:
+        Stage11()
+    elif stage == 12:
+        Stage12()
+    elif stage == 13:
+        Stage13()
+    elif stage == 14:
+        Stage14()
 
+# Del ét af brudt streg
+def Stage1():
+    FollowLine()
 
-# Algoritme som får robotten til at følge en lige linje
-def stage1():
-    while True:
-        color = checkColor()
-        if color > 50:
-            right_motor.run(-300)
-            left_motor.run(-200)
-        else:
-            left_motor.run(-300)
-            right_motor.run(-200)
+# Del to af brudt streg
+def Stage2():
+    robot.turn(-30)
+    robot.straight(-400)
+    robot.turn(30)
+    robot.stop()
+    FollowLine()
 
+# 180 grader sving
+def Stage3():
+    robot.turn(30)
+    robot.straight(-400)
+    robot.turn(-30)
+    robot.stop()
+    FollowLine()
 
-stageControl() 
+# Flyt flaske
+def Stage4():
+    pass
+
+# Venstresving over til vippen
+def Stage5():
+    pass
+
+# Vippen
+def Stage6():
+    pass
+
+# Parallelle streger
+def Stage7():
+    pass
+
+# Venstresving over til dartskive
+def Stage8():
+    pass
+
+# Dartskive
+def Stage9():
+    pass
+
+# Fra dartskive over til rundt om flasken
+def Stage10():
+    pass
+
+# Rundt om flasken #1
+def Stage11():
+    pass
+
+# Zig-zag rundt om muren
+def Stage12():
+    pass
+
+# Rundt om flasken #2
+def Stage13():
+    pass
+
+# Landingsbane
+def Stage14():
+    pass
+
+StageControl()
