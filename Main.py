@@ -54,30 +54,32 @@ def ColorControl():
     wait(5000)
     StageControl()
 
-def FollowLine():
+def FollowLine(speed1, speed2):
     global white
     global black
     global stage
     global right_motor
     global left_motor
-    counter = 0
     while True:
         color = CheckColor()
-        if color >= white - 10 and counter % 2 == 0:
-            right_motor.run(-400)
-            left_motor.run(-300)
-            counter += 1
-            wait(500)
-        elif color >= white - 10 and counter % 2 == 1:
-            right_motor.run(-300)
-            left_motor.run(-400)
-            counter += 1
-            wait(500)
-        elif color < black + 10: 
-            break
+        if color >= white - 10:
+            right_motor.run(speed1)
+            left_motor.run(speed2)
+        elif color < white - 10 and color > black + 10:
+            right_motor.run(speed2)
+            left_motor.run(speed1)
+        else: break
     robot.stop()
     stage += 1
     StageControl()
+
+def FindBottle():
+    while True:
+        distance = CheckDistance()
+        if distance < 500:
+            robot.stop()
+            break
+        else: robot.drive(200, 0)
             
 
 # Definér variabler
@@ -120,69 +122,26 @@ def StageControl():
     elif stage == 14:
         Stage14()
 
-# Del ét af brudt streg
-def Stage1():
-    FollowLine()
-
-# Del to af brudt streg
-def Stage2():
-    robot.turn(-30)
-    robot.straight(-400)
-    robot.turn(30)
-    robot.stop()
-    FollowLine()
-
 # 180 grader sving
 def Stage3():
     robot.turn(30)
     robot.straight(-400)
     robot.turn(-30)
     robot.stop()
-    FollowLine()
+    FollowLine(-300, -200)
 
 # Flyt flaske
 def Stage4():
-    pass
-
-# Venstresving over til vippen
-def Stage5():
-    pass
-
-# Vippen
-def Stage6():
-    pass
-
-# Parallelle streger
-def Stage7():
-    pass
-
-# Venstresving over til dartskive
-def Stage8():
-    pass
-
-# Dartskive
-def Stage9():
-    pass
-
-# Fra dartskive over til rundt om flasken
-def Stage10():
-    pass
-
-# Rundt om flasken #1
-def Stage11():
-    pass
-
-# Zig-zag rundt om muren
-def Stage12():
-    pass
-
-# Rundt om flasken #2
-def Stage13():
-    pass
-
-# Landingsbane
-def Stage14():
-    pass
+    robot.turn(CheckAngle() - 180)
+    robot.straight(-200)
+    robot.turn(CheckAngle() - 90)
+    robot.straight(-200)
+    FindBottle()
+    #Saml flasken op og kør den over stregen
+    robot.turn(CheckAngle() - 270)
+    robot.straight(-500)
+    robot.turn(-45)
+    FollowLine()
 
 StageControl()
 

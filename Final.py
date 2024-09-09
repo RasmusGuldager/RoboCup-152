@@ -54,7 +54,7 @@ def ColorControl():
     wait(5000)
     StageControl()
 
-def FollowLine():
+def FollowLine(speed1, speed2):
     global white
     global black
     global stage
@@ -63,15 +63,23 @@ def FollowLine():
     while True:
         color = CheckColor()
         if color >= white - 10:
-            right_motor.run(-300)
-            left_motor.run(-200)
+            right_motor.run(speed1)
+            left_motor.run(speed2)
         elif color < white - 10 and color > black + 10:
-            right_motor.run(-200)
-            left_motor.run(-300)
+            right_motor.run(speed2)
+            left_motor.run(speed1)
         else: break
     robot.stop()
     stage += 1
     StageControl()
+
+def FindBottle():
+    while True:
+        distance = CheckDistance()
+        if distance < 500:
+            robot.stop()
+            break
+        else: robot.drive(200, 0)
             
 
 # Definér variabler
@@ -116,7 +124,7 @@ def StageControl():
 
 # Del ét af brudt streg
 def Stage1():
-    FollowLine()
+    FollowLine(-300, -200)
 
 # Del to af brudt streg
 def Stage2():
@@ -124,7 +132,7 @@ def Stage2():
     robot.straight(-400)
     robot.turn(30)
     robot.stop()
-    FollowLine()
+    FollowLine(-300, -200)
 
 # 180 grader sving
 def Stage3():
@@ -132,11 +140,21 @@ def Stage3():
     robot.straight(-400)
     robot.turn(-30)
     robot.stop()
-    FollowLine()
+    FollowLine(-300, -200)
 
 # Flyt flaske
 def Stage4():
-    pass
+    robot.turn(CheckAngle() - 180)
+    robot.straight(-200)
+    robot.turn(CheckAngle() - 90)
+    robot.straight(-200)
+    FindBottle()
+    #Saml flasken op og kør den over stregen
+    robot.turn(CheckAngle() - 270)
+    robot.straight(-500)
+    robot.turn(-45)
+    FollowLine()
+
 
 # Venstresving over til vippen
 def Stage5():
@@ -157,6 +175,19 @@ def Stage8():
 # Dartskive
 def Stage9():
     pass
+"""
+Løsning til dartskive:
+Kun hvis ikke followLine kan udføres direkte fra sort linje
+**Drej en bestemt vinkel
+**Kør ligeud indtil followLine kan udføres
+
+Afvent signal fra distancesensor med prædefineret afstand til flaske
+Udfør protokol for at samle flasken op
+Drej til en bestemt vinkel vha gyroskop
+kør en prædefineret længde
+sæt flasken
+lav followLine igen
+"""
 
 # Fra dartskive over til rundt om flasken
 def Stage10():
