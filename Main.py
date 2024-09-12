@@ -84,10 +84,9 @@ def FindBottle():
 
 # Definér variabler
 stage = 0
-white = 75
+white = 85
 black = 6
 colorStage = 1
-gyroSensor.reset_angle(0)
 
 # Funktion til at styre hvilket stadie på banen robotten er nået til
 def StageControl():
@@ -122,8 +121,23 @@ def StageControl():
     elif stage == 14:
         Stage14()
 
+# Del ét af brudt streg
+def Stage1():
+    gyroSensor.reset_angle(0)
+    FollowLine(-300, -200)
+
+# Del to af brudt streg
+def Stage2():
+    print(2, CheckAngle())
+    robot.turn(-30)
+    robot.straight(-600)
+    robot.turn(30)
+    robot.stop()
+    FollowLine(-300, -200)
+
 # 180 grader sving
 def Stage3():
+    print(3, CheckAngle())
     robot.turn(30)
     robot.straight(-400)
     robot.turn(-30)
@@ -132,6 +146,11 @@ def Stage3():
 
 # Flyt flaske
 def Stage4():
+    print(4, CheckAngle())
+    robot.straight(-100)
+    robot.stop()
+    FollowLine(-300, -250)
+    '''
     robot.turn(CheckAngle() - 180)
     robot.straight(-200)
     robot.turn(CheckAngle() - 90)
@@ -142,7 +161,104 @@ def Stage4():
     robot.straight(-500)
     robot.turn(-45)
     FollowLine()
+    '''
+
+
+# Venstresving over til vippen
+def Stage5():
+    print(5, CheckAngle())
+    robot.straight(-100)
+    robot.stop()
+    FollowLine(-300, -200)
+
+# Vippen
+def Stage6():
+    global stage
+    stage += 1
+    StageControl()
+
+# Parallelle streger
+def Stage7():
+    print(7, CheckAngle())
+    robot.straight(-100)
+    robot.stop()
+    FollowLine(-300, -200)
+
+# Venstresving over til dartskive
+def Stage8():
+    print(8, CheckAngle())
+    robot.straight(-100)
+    robot.stop()
+    FollowLine(-300, -200)
+
+# Dartskive
+def Stage9():
+    global stage
+    stage += 1
+    StageControl()
+"""
+Løsning til dartskive:
+Kun hvis ikke followLine kan udføres direkte fra sort linje
+**Drej en bestemt vinkel
+**Kør ligeud indtil followLine kan udføres
+
+Afvent signal fra distancesensor med prædefineret afstand til flaske
+Udfør protokol for at samle flasken op
+Drej til en bestemt vinkel vha gyroskop
+kør en prædefineret længde
+sæt flasken
+lav followLine igen
+"""
+
+# Fra dartskive over til rundt om flasken
+def Stage10():
+    global stage
+    stage += 1
+    StageControl()
+
+# Rundt om flasken #1
+def Stage11():
+    print(11, CheckAngle())
+    robot.turn(-30)
+    robot.drive(-100, 5)
+    while True:
+        color = CheckColor()
+        if color < white - 10:
+            robot.turn(-30)
+            robot.stop()
+            FollowLine(-300, -200)
+            break
+
+# Zig-zag rundt om muren
+def Stage12():
+    print(12, CheckAngle())
+    robot.turn(-85)
+    robot.drive(-150, 12)
+    while True:
+        color = CheckColor()
+        if color < white - 10:
+            robot.turn(-30)
+            robot.stop()
+            FollowLine(-300, -200)
+            break
+
+# Rundt om flasken #2
+def Stage13():
+    print(13, CheckAngle())
+    robot.turn(-35)
+    robot.drive(-100, 5)
+    while True:
+        color = CheckColor()
+        if color < white - 10:
+            robot.straight(-150)
+            robot.stop()
+            FollowLine(-300, -200)
+            break
+
+# Landingsbane
+def Stage14():
+    print(14, CheckAngle())
+    robot.turn(25)
+    robot.straight(-1700)
 
 StageControl()
-
-            
