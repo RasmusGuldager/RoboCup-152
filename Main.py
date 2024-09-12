@@ -12,17 +12,18 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 ev3 = EV3Brick()
 
 # Robottens motorer initialiseres
-left_motor = Motor(Port.B)
 right_motor = Motor(Port.A)
+left_motor = Motor(Port.B)
+small_motor = Motor(Port.C)
 
 # En drivebase for robotten initialiseres
-robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=124)
+robot = DriveBase(left_motor, right_motor, wheel_diameter=70, axle_track=135)
 
 # Afstandssensor og farvesensor initialiseres
 colorSensor = ColorSensor(Port.S1)
-gyroSensor = GyroSensor(Port.S2)
-touchSensor = TouchSensor(Port.S3)
-distanceSensor = UltrasonicSensor(Port.S4)
+distanceSensor = UltrasonicSensor(Port.S2)
+gyroSensor = GyroSensor(Port.S3)
+touchSensor = TouchSensor(Port.S4)
 
 # Funktioner som tjekker farvereflektion, afstand og rumlig orientering initialiseres
 def CheckColor():
