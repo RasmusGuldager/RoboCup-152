@@ -7,6 +7,23 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
+class RightAngleTri(Enum):
+    sideA = 0.0
+    sideB = 0.0
+    sideC = 0.0
+    alpha = 0.0
+    beta = 0.0
+
+
+
+class GyroTriangle:
+    def __init__(self, measuredAngle, legLength):
+        self.measuredAngle = radians(measuredAngle)
+        self.legLength = legLength
+        self.grundlinje = 2 * legLength * sin(measuredAngle)
+        self.oppositeAngles = (180 - measuredAngle)*0.5
+
+
 
 # Initialize the EV3 Brick.
 ev3 = EV3Brick()
@@ -27,19 +44,49 @@ def CheckColor():
 def CheckDist():
     return Afstandssensor.distance()
 
-# method to check current angle here
-
-
-watch = StopWatch() #definer et stopur
-prevColor = checkColor() #en cached farveværdi, så de kan sammenlignes
-
 GREY_LINE_WIDTH = 50
 DIST_TURN_AXIS_TO_COLOR_CHECKER = 65
 
+axisGyroEntry = 0
+axisGyroExit = 0
+
+def CalculateMiddleOfLine(gyroTri):
+    # initialize trekant klassserne
+    triA = RightAngleTri()
+    triB = RightAngleTri()
+    triC = RightAngleTri()
+
+    # trekant a defineres
+    triA.sideB = GREY_LINE_WIDTH #side b er blot bredden af linjen
+    triA.sideC = gyroTri.grundlinje # hypotenusen er grundlinjen på den målte ligebenede trekant
+    triA.sideA = sqrt(pow(triA.sideC, 2) - pow(triA.sideB, 2)) # side a udregnes herfra
+
+    triA.alpha = asin(triA.sideA / triA.sideC) #jeg finder vinklen alpha på trekant a
+    
+    triB.alpha = 90 - (degrees(triA.alpha) + gyroTri.oppositeAngles) # ud fra dette udregne trekant b's vinkel beta
+    triB.beta = 90 - triB.alpha #med dette kan modstående vinkel også findes
+    outputAngle = gyroTri.measuredAngle - triB.alpha #vinkel alpha kan trækkes fra den målte vinkel, og hermed ved vi hvor langt vi skal dreje.
+
+    triB.sideC = gyroTri.legLength #dette er længden fra omdrejningspunktet til farvelæseren
+    triB.sideA = triB.sideC * cos(radians(triB.alpha)) #side a findes i trekant b, da denne skal bruges til at finde side b i trekant D
 
 
-watch.resume() #start uret
-cascadeItarator = 0 #Sæt en iterator
+    triC.sideB = GREY_LINE_WIDTH * 0.5 - triB.sideA
+    triC.alpha = 180 - (gyrotri.measuredAngle + triB.beta)
+    # triC.beta = 90 - triD.alpha
+    triC.sideA = triD.sideB * tan(radians(triD.alpha))
+
+    triC.sideC = sqrt(pow(triD.sideA, 2) + pow(triD.sideB, 2))
+    outputDistance = triD.sideC
+
+    return (outputDistance, outputAngle)
+
+
+
+
+
+
+
 
 
 while True:
@@ -49,8 +96,33 @@ while True:
     # step 4: when you hit white, cache current gyroscope angle and stop
         # debug step, maybe: repeat a couple of times
     # step 5: calculate distance between the two points, as a triangle. Det giver hypotenusen på en retvinklet trekant,
+    # dette er trekantA
+
     # der består af: b: banens pre-definerede bredde, c: den distance vi lige har udregnet og en ukendt a.
-    # a findes, og så kan vinklen mellem c og b findes.
+    # denne retvinklede trekant er trekantA.
+
+    # vi kan også finde vinklen i bundene af sidebenene, triGyroCalculatedAngle = (180 - triGyroMeasuredAngle)/2
+    # den ukendte side, a findes med: sqrt(c²-b²)
+
+    # derefter findes vinklen i trekantA, A_alpha (modstående side A)
+    # det gøres med A_alpha = arcsin(a / c)
+
+    # nu har kan vi lægge 90, vinkal A_alpha og sidebensvinklen sammen og trække det fra 180 - så har vi vinkel b_alpha
+    # for at finde side a på trekantB, er formlen: a = c * cos(a)
+    # hvis jeg så tager halvdelen af grå linjes bredde, og trækker side a fra dette, får jeg side b i trekantD
+
+    # hvis jeg trækker vinkel b_alpha fra det ligebenede trekants gyromåling, har jeg vinkel d_alpha
+    # dette er vinkel v, og er det jeg skal dreje
+    # For at finde hvor langt jeg skal køre skal jeg udregne hypotenusen i trekantD
+    # først finder jeg siden a i trekantD, da denne skal bruges til at finde hypotenusen:
+    # Det finder jeg med vinklen D_alpha, jeg kan udregne som D_alpha = 180 - triGyroMeasuredAngle - B_beta
+    # Ud fra det kan jeg finde D_beta ved hjælp af vinkelsummen. D_beta = 90 - D_alpha
+    # så findes siden b i trekantD med: triDSideB = TriDSideA * tan(TriD_beta)
+    # dist = sqrt(D_a² + D_b²)
+    # så kører robotten dette
+
+    # nem trig lookup: https://www.omnicalculator.com/math/right-triangle-side-angle
+
     color = checkColor()
     if color > 50:
         if prevColor <= 50: #hvis den lige har skiftet farve, så reset uret
