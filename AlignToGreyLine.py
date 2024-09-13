@@ -35,8 +35,9 @@ right_motor = Motor(Port.B)
 # Initialize the drive base.
 robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=124)
 
-# Afstandssensor og farvesensor
+# Gyroskop og farvesensor
 Farvesensor = ColorSensor(Port.S3)
+gyroSensor = GyroSensor(Port.S3)
 
 def CheckColor():
     return Farvesensor.reflection()
@@ -44,8 +45,11 @@ def CheckColor():
 def CheckDist():
     return Afstandssensor.distance()
 
+def CheckGyro():
+    return gyroSensor.angle()
+
 GREY_LINE_WIDTH = 50
-DIST_TURN_AXIS_TO_COLOR_CHECKER = 65
+DIST_TURN_AXIS_TO_COLOR_CHECKER = 65 # millimeter
 
 axisGyroEntry = 0
 axisGyroExit = 0
@@ -82,14 +86,54 @@ def CalculateMiddleOfLine(gyroTri):
     return (outputDistance, outputAngle)
 
 
+def AlignToGreyLine(isOnRightSide):
+    if isOnrightSide:
+        robot.turn(20) #creates buffer to grey line
+        wait(100)
+        instructions = AnalyzeGreyLine(100)
+    else:
+        robot.turn(-20)
+        wait(100)
+        instructions = AnalyzeGreyLine(-100)
+    
+    robot.straight(instructions[0])
+    robot.turn(instructions[1])
+
+def AnalyzeGreyLine(turnSpeed):
+    global white
+    robot.stop()
+    # reset gyroscop, eller cache nuværende værdi
+
+    left_motor.run(turnSpeed)
+    right_motor.run(-turnSpeed)
+
+    while CheckColor() >= white: 
+        pass
+
+    angleGyroEntry = CheckGyro()
+
+    while CheckColor() <= white: 
+        pass
+
+    left_motor.stop()
+    right_motor.stop()
+
+    angleGyroExit = CheckGyro()
+
+    instructions = CalculateMiddleOfLine(GyroTriangle(angleGyroExit - angleGyroEntry, DIST_TURN_AXIS_TO_COLOR_CHECKER))
+    return instructions
+
+
+AlightToGreyLine(True)
+
+
+
+    
 
 
 
 
 
-
-
-while True:
     # step 1: find edge to white
     # step 2: cache current gyroscope angle
     # step 3: turn very slowly in the grey
@@ -122,25 +166,6 @@ while True:
     # så kører robotten dette
 
     # nem trig lookup: https://www.omnicalculator.com/math/right-triangle-side-angle
-
-    color = checkColor()
-    if color > 50:
-        if prevColor <= 50: #hvis den lige har skiftet farve, så reset uret
-            watch.reset()
-        prevColor = color #farve sættes til nuværende farve for næste loop
-
-        TurnLeft()
-    else:
-        if prevColor > 50: #hvis den lige har skiftet farve, så reset uret
-            watch.reset()
-        prevColor = color #farve sættes til nuværende farve for næste loop
-
-        TurnRight()
-
-
-# step 1: find
-
-
             
 
 
