@@ -14,8 +14,6 @@ class RightAngleTri(Enum):
     alpha = 0.0
     beta = 0.0
 
-
-
 class GyroTriangle:
     def __init__(self, measuredAngle, legLength):
         self.measuredAngle = radians(measuredAngle)
@@ -33,7 +31,7 @@ left_motor = Motor(Port.A)
 right_motor = Motor(Port.B)
 
 # Initialize the drive base.
-robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=124)
+robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=124) #todo: calibrate
 
 # Gyroskop og farvesensor
 Farvesensor = ColorSensor(Port.S3)
@@ -54,7 +52,7 @@ DIST_TURN_AXIS_TO_COLOR_CHECKER = 65 # millimeter
 axisGyroEntry = 0
 axisGyroExit = 0
 
-def CalculateMiddleOfLine(gyroTri):
+def CalculateMiddleOfLineFromInside(gyroTri):
     # initialize trekant klassserne
     triA = RightAngleTri()
     triB = RightAngleTri()
@@ -77,7 +75,36 @@ def CalculateMiddleOfLine(gyroTri):
 
     triC.sideB = GREY_LINE_WIDTH * 0.5 - triB.sideA
     triC.alpha = 180 - (gyrotri.measuredAngle + triB.beta)
-    # triC.beta = 90 - triD.alpha
+    triC.sideA = triD.sideB * tan(radians(triD.alpha))
+
+    triC.sideC = sqrt(pow(triD.sideA, 2) + pow(triD.sideB, 2))
+    outputDistance = triD.sideC
+
+    return (outputDistance, outputAngle)
+
+def CalclulateMiddleOfLineFromOutside(gyroTri):
+     # initialize trekant klassserne
+    triA = RightAngleTri()
+    triB = RightAngleTri()
+    triC = RightAngleTri()
+
+    # trekant a defineres
+    triA.sideB = GREY_LINE_WIDTH #side b er blot bredden af linjen
+    triA.sideC = gyroTri.grundlinje # hypotenusen er grundlinjen på den målte ligebenede trekant
+    triA.sideA = sqrt(pow(triA.sideC, 2) - pow(triA.sideB, 2)) # side a udregnes herfra
+
+    triA.alpha = asin(triA.sideA / triA.sideC) #jeg finder vinklen alpha på trekant a
+    
+    triB.beta = 90 - (degrees(triA.alpha) + gyroTri.oppositeAngles) # ud fra dette udregne trekant b's vinkel beta
+    triB.alpha = 90 - triB.beta #med dette kan modstående vinkel også findes
+    outputAngle = gyroTri.measuredAngle + triB.alpha #vinkel alpha kan trækkes fra den målte vinkel, og hermed ved vi hvor langt vi skal dreje.
+
+    triB.sideC = gyroTri.legLength #dette er længden fra omdrejningspunktet til farvelæseren
+    triB.sideA = triB.sideC * cos(radians(triB.alpha)) #side a findes i trekant b, da denne skal bruges til at finde side b i trekant D
+
+
+    triC.sideB = GREY_LINE_WIDTH * 0.5 + triB.sideA
+    triC.beta = 90 - (gyrotri.measuredAngle + triB.alpha)
     triC.sideA = triD.sideB * tan(radians(triD.alpha))
 
     triC.sideC = sqrt(pow(triD.sideA, 2) + pow(triD.sideB, 2))
@@ -86,20 +113,52 @@ def CalculateMiddleOfLine(gyroTri):
     return (outputDistance, outputAngle)
 
 
-def AlignToGreyLine(isOnRightSide):
+def AlignToGreyLine(isOnRightSide, isOutsideLine):
     if isOnrightSide:
         robot.turn(20) #creates buffer to grey line
         wait(100)
-        instructions = AnalyzeGreyLine(100)
+        gyroSensor = GyroSensor(Port.S3, Direction.COUNTERCLOCKWISE)
+        instructions = AnalyzeGreyLine(100, isOutsideLine)
     else:
         robot.turn(-20)
         wait(100)
-        instructions = AnalyzeGreyLine(-100)
+        gyroSensor = GyroSensor(Port.S3, Direction.CLOCKWISE)
+        instructions = AnalyzeGreyLine(-100, isOutsideLine)
     
     robot.straight(instructions[0])
-    robot.turn(instructions[1])
+    #robot.turn(instructions[1])
+    #TurnAngle(instructions[1])
+    if isOnRightSide:
+        gyroSensor = GyroSensor(Port.S3, Direction.CLOCKWISE)
+        TurnAngle(instructions[1], 100)
+    else:
+        gyroSensor = GyroSensor(Port.S3, Direction.COUNTERCLOCKWISE)
+        TurnAngle(instructions[1], -100)
+    
 
-def AnalyzeGreyLine(turnSpeed):
+    
+
+def TurnToAngle(angle, speed):
+    left_motor.run(speed)
+    right_motor.run(-speed)
+    if angle < gyroSensor.angle():
+        while angle < gyroSensor.angle()
+        pass
+    elif angle > gyroSensor.angle():
+        while angle > gyroSensor.angle()
+        pass
+    
+    left_motor.hold()
+    right_motor.hold()
+ 
+    if angle > gyroSensor.angle() :
+        TurnToAngle(angle, speed * 0.5)
+    elif angle < gyroSensor.angle():
+        TurnToAngle(angle, speed * 0.5)
+
+
+
+def AnalyzeGreyLine(turnSpeed, isOutsideLine):
     global white
     robot.stop()
     # reset gyroscop, eller cache nuværende værdi
@@ -110,7 +169,7 @@ def AnalyzeGreyLine(turnSpeed):
     while CheckColor() >= white: 
         pass
 
-    angleGyroEntry = CheckGyro()
+    gyroSensor.reset_angle(0)
 
     while CheckColor() <= white: 
         pass
@@ -119,12 +178,14 @@ def AnalyzeGreyLine(turnSpeed):
     right_motor.stop()
 
     angleGyroExit = CheckGyro()
-
-    instructions = CalculateMiddleOfLine(GyroTriangle(angleGyroExit - angleGyroEntry, DIST_TURN_AXIS_TO_COLOR_CHECKER))
+    if isOutsideLine:
+        instructions = CalculateMiddleOfLineFromOutside(GyroTriangle(angleGyroExit - angleGyroEntry, DIST_TURN_AXIS_TO_COLOR_CHECKER))
+    else:
+        instructions = CalculateMiddleOfLineFromInside(GyroTriangle(gyroSensor.angle(), DIST_TURN_AXIS_TO_COLOR_CHECKER))
     return instructions
 
 
-AlightToGreyLine(True)
+AlignToGreyLine(True, True)
 
 
 
