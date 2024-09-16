@@ -102,6 +102,24 @@ def AdjustGyro(speed1, speed2):
     gyroSensor.reset_angle(0)
     FollowLine(speed1, speed2)
 
+def TurnToAngle(angle, speed):
+    left_motor.run(speed)
+    right_motor.run(-speed)
+    if angle < gyroSensor.angle():
+        while angle < gyroSensor.angle()
+        pass
+    elif angle > gyroSensor.angle():
+        while angle > gyroSensor.angle()
+        pass
+    
+    left_motor.hold()
+    right_motor.hold()
+ 
+    if angle > gyroSensor.angle() :
+        TurnToAngle(angle, speed * 0.5)
+    elif angle < gyroSensor.angle():
+        TurnToAngle(angle, speed * 0.5)
+
             
 
 # Definér variabler
@@ -151,7 +169,7 @@ def Stage1():
 # Del to af brudt streg
 def Stage2():
     print(2, CheckAngle())
-    robot.turn(-50 + CheckAngle())
+    robot.turn(CheckAngle() - 50)
     robot.straight(-450)
     robot.turn(30)
     robot.stop()
