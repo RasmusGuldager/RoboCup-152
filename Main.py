@@ -23,7 +23,7 @@ robot = DriveBase(left_motor, right_motor, wheel_diameter=70, axle_track=135)
 # Afstandssensor og farvesensor initialiseres
 colorSensor = ColorSensor(Port.S1)
 distanceSensor = UltrasonicSensor(Port.S2)
-gyroSensor = GyroSensor(Port.S3)
+gyroSensor = GyroSensor(Port.S3, Direction.COUNTERCLOCKWISE)
 touchSensor = TouchSensor(Port.S4)
 
 # Funktioner som tjekker farvereflektion, afstand og rumlig orientering initialiseres
@@ -53,7 +53,7 @@ def ColorControl():
     grey = CheckColor()
     ev3.speaker.say("Grey " + str(grey))
     stage += 1
-    wait(5000)
+    wait(1500)
     StageControl()
 
 def FollowLine(speed1, speed2):
@@ -75,13 +75,6 @@ def FollowLine(speed1, speed2):
     stage += 1
     StageControl()
 
-def FindBottle():
-    while True:
-        distance = CheckDistance()
-        if distance < 500:
-            robot.stop()
-            break
-        else: robot.drive(200, 0)
 
 def AdjustGyro(speed1, speed2):
     global white
@@ -90,35 +83,57 @@ def AdjustGyro(speed1, speed2):
     global right_motor
     global left_motor
     start_time = time.time()
-    while time.time() - start_time < 3:
+    while time.time() - start_time < 4:
         color = CheckColor()
         if color >= (white + grey) / 2:
-            right_motor.run(20)
-            left_motor.run(18)
+            right_motor.run(-40)
+            left_motor.run(-36)
         elif color < (white + grey) / 2 and color > 15:
-            right_motor.run(18)
-            left_motor.run(20)
+            right_motor.run(-36)
+            left_motor.run(-40)
     robot.stop()
     gyroSensor.reset_angle(0)
     FollowLine(speed1, speed2)
 
-def TurnToAngle(angle, speed):
-    left_motor.run(speed)
-    right_motor.run(-speed)
+
+
+def TurnToAngle(angle, speed, epsilon):
+    
     if angle < gyroSensor.angle():
-        while angle < gyroSensor.angle()
-        pass
+        left_motor.run(-speed)
+        right_motor.run(speed)
+        while angle < gyroSensor.angle():
+            pass
     elif angle > gyroSensor.angle():
-        while angle > gyroSensor.angle()
-        pass
+        left_motor.run(speed)
+        right_motor.run(-speed)
+        while angle > gyroSensor.angle():
+            pass
     
     left_motor.hold()
     right_motor.hold()
  
-    if angle > gyroSensor.angle() :
-        TurnToAngle(angle, speed * 0.5)
-    elif angle < gyroSensor.angle():
-        TurnToAngle(angle, speed * 0.5)
+    wait(150)
+    if angle > gyroSensor.angle() + epsilon:
+        TurnToAngle(angle, speed * 0.33, epsilon)
+    elif angle < gyroSensor.angle() - epsilon:
+        TurnToAngle(angle, speed * 0.33, epsilon)
+
+
+def ApproachLineStraight(speed):
+    global grey
+    robot.drive(speed, 0)
+    while CheckColor() > grey + 15:
+        pass
+    robot.stop()
+
+
+def RunForkliftUp():
+    small_motor.run_until_stalled(300, Stop.HOLD, 90)
+
+
+def RunForkliftDown():
+    small_motor.run_until_stalled(-300, Stop.HOLD, 70)
 
             
 
@@ -163,43 +178,44 @@ def StageControl():
 
 # Del ét af brudt streg
 def Stage1():
-    AdjustGyro()
+    AdjustGyro(-450, -300)
     FollowLine(-450, -300)
 
 # Del to af brudt streg
 def Stage2():
     print(2, CheckAngle())
-    robot.turn(CheckAngle() - 50)
-    robot.straight(-450)
-    robot.turn(30)
-    robot.stop()
-    FollowLine(-450, -300)
+    TurnToAngle(-30, 200, 5)
+    ApproachLineStraight(-200)
+    FollowLine(-300, -450)
 
 # 180 grader sving
 def Stage3():
     print(3, CheckAngle())
-    robot.turn(30)
-    robot.straight(-450)
-    robot.turn(-30)
-    robot.stop()
+    TurnToAngle(30, 200, 5)
+    ApproachLineStraight(-200)
     FollowLine(-450, -300)
 
 # Flyt flaske
 def Stage4():
     print(4, CheckAngle())
-    robot.straight(-100)
+    robot.straight(-300)
+    #robot.turn(CheckAngle() + 90)
     robot.stop()
-    FollowLine(-450, -400)
-    '''
-    robot.straight(-100)
-    robot.turn(CheckAngle() - 90)
-    FindBottle()
-    #Saml flasken op og kør den over stregen
-    robot.turn(CheckAngle() - 270)
-    robot.straight(-500)
-    robot.turn(-45)
-    FollowLine()
-    '''
+    TurnToAngle(-270, 200, 2)
+    robot.drive(-200, 0)
+    while CheckDist() > 120:
+        pass
+    robot.stop()
+    RunForkliftUp()
+    robot.straight(-250)
+    RunForkliftDown()
+    robot.straight(200)
+    robot.stop()
+    TurnToAngle(-90, 200, 2)
+    robot.straight(-150)
+    robot.stop()
+    TurnToAngle(-180, 200, 2)
+    FollowLine(-450, -300)
 
 
 # Venstresving over til vippen
@@ -226,14 +242,20 @@ def Stage7():
 def Stage8():
     print(8, CheckAngle())
     robot.straight(-100)
+    robot.turn(90)
     robot.stop()
     FollowLine(-450, -400)
 
 # Dartskive
 def Stage9():
+    '''
     global stage
     stage += 1
     StageControl()
+    '''
+    robot.turn()
+    robot.stop()
+    FollowLine(-300, -450)
 """
 Løsning til dartskive:
 Kun hvis ikke followLine kan udføres direkte fra sort linje
@@ -302,7 +324,7 @@ def Stage14():
     robot.turn(25)
     #robot.turn(CheckAngle() - 180)
     while True:
-        distance = CheckDistance()
+        distance = CheckDist()
         robot.drive(100)
         if distance > 1250:
             robot.stop()
