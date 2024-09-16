@@ -6,6 +6,7 @@ from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
+import time
 
 
 # EV3 initialiseres
@@ -81,6 +82,26 @@ def FindBottle():
             robot.stop()
             break
         else: robot.drive(200, 0)
+
+def AdjustGyro(speed1, speed2):
+    global white
+    global grey
+    global stage
+    global right_motor
+    global left_motor
+    start_time = time.time()
+    while time.time() - start_time < 3:
+        color = CheckColor()
+        if color >= (white + grey) / 2:
+            right_motor.run(20)
+            left_motor.run(18)
+        elif color < (white + grey) / 2 and color > 15:
+            right_motor.run(18)
+            left_motor.run(20)
+    robot.stop()
+    gyroSensor.reset_angle(0)
+    FollowLine(speed1, speed2)
+
             
 
 # Definér variabler
@@ -124,7 +145,7 @@ def StageControl():
 
 # Del ét af brudt streg
 def Stage1():
-    gyroSensor.reset_angle(0)
+    AdjustGyro()
     FollowLine(-450, -300)
 
 # Del to af brudt streg
@@ -152,10 +173,8 @@ def Stage4():
     robot.stop()
     FollowLine(-450, -400)
     '''
-    robot.turn(CheckAngle() - 180)
-    robot.straight(-200)
+    robot.straight(-100)
     robot.turn(CheckAngle() - 90)
-    robot.straight(-200)
     FindBottle()
     #Saml flasken op og kør den over stregen
     robot.turn(CheckAngle() - 270)
@@ -255,6 +274,7 @@ def Stage13():
         if color < white - 20:
             robot.straight(-150)
             robot.stop()
+            #AdjustGyro()
             FollowLine(-450, -300)
             break
 
@@ -262,11 +282,13 @@ def Stage13():
 def Stage14():
     print(14, CheckAngle())
     robot.turn(25)
+    #robot.turn(CheckAngle() - 180)
     while True:
         distance = CheckDistance()
         robot.drive(100)
-        if distance > 1300:
+        if distance > 1250:
             robot.stop()
             break
+
 
 StageControl()
