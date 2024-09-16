@@ -35,22 +35,26 @@ def CheckAngle():
 robot = DriveBase(left_motor, right_motor, wheel_diameter=70, axle_track=136) #todo: calibrate
 
 def TurnToAngle(angle, speed):
-    left_motor.run(speed)
-    right_motor.run(-speed)
+    
     if angle < gyroSensor.angle():
-        while angle < gyroSensor.angle()
-        pass
+        left_motor.run(-speed)
+        right_motor.run(speed)
+        while angle < gyroSensor.angle():
+            pass
     elif angle > gyroSensor.angle():
-        while angle > gyroSensor.angle()
-        pass
+        left_motor.run(speed)
+        right_motor.run(-speed)
+        while angle > gyroSensor.angle():
+            pass
     
     left_motor.hold()
     right_motor.hold()
  
-    if angle > gyroSensor.angle() :
-        TurnToAngle(angle, speed * 0.5)
+    wait(150)
+    if angle > gyroSensor.angle():
+        TurnToAngle(angle, speed * 0.33)
     elif angle < gyroSensor.angle():
-        TurnToAngle(angle, speed * 0.5)
+        TurnToAngle(angle, speed * 0.33)
 
 # robot.straight(-210) #længen af et A5 papir
 
@@ -58,7 +62,7 @@ def TurnToAngle(angle, speed):
 gyroSensor.reset_angle(0)
 
 
-TurnToAngle(360, 100)
+TurnToAngle(360, 300)
 
 wait(1000)
 ev3.speaker.say("Gyroscope angle is: "+ str(gyroSensor.angle()))

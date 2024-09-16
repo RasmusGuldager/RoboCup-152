@@ -187,14 +187,6 @@ def AnalyzeGreyLine(turnSpeed, isOutsideLine):
 
 AlignToGreyLine(True, True)
 
-
-
-    
-
-
-
-
-
     # step 1: find edge to white
     # step 2: cache current gyroscope angle
     # step 3: turn very slowly in the grey
