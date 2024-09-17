@@ -93,7 +93,6 @@ def AdjustGyro(speed1, speed2):
             left_motor.run(-40)
     robot.stop()
     gyroSensor.reset_angle(0)
-    FollowLine(speed1, speed2)
 
 
 
@@ -178,7 +177,7 @@ def StageControl():
 
 # Del ét af brudt streg
 def Stage1():
-    AdjustGyro(-450, -300)
+    AdjustGyro()
     FollowLine(-450, -300)
 
 # Del to af brudt streg
