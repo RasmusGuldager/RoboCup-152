@@ -76,14 +76,14 @@ def FollowLine(speed1, speed2):
     StageControl()
 
 
-def AdjustGyro(speed1, speed2):
+def AdjustGyro(runtime):
     global white
     global grey
     global stage
     global right_motor
     global left_motor
     start_time = time.time()
-    while time.time() - start_time < 4:
+    while time.time() - start_time < runtime:
         color = CheckColor()
         if color >= (white + grey) / 2:
             right_motor.run(-40)
@@ -137,7 +137,7 @@ def RunForkliftDown():
             
 
 # Definér variabler
-stage = 0
+stage = 1
 white = 80
 grey = 40
 colorStage = 1
@@ -177,32 +177,30 @@ def StageControl():
 
 # Del ét af brudt streg
 def Stage1():
-    AdjustGyro()
+    # Luk gribearm
+    AdjustGyro(2)
     FollowLine(-450, -300)
 
 # Del to af brudt streg
 def Stage2():
-    print(2, CheckAngle())
     TurnToAngle(-30, 200, 5)
     ApproachLineStraight(-200)
     FollowLine(-300, -450)
 
 # 180 grader sving
 def Stage3():
-    print(3, CheckAngle())
-    TurnToAngle(30, 200, 5)
+    TurnToAngle(30, 200, 2)
     ApproachLineStraight(-200)
     FollowLine(-450, -300)
 
 # Flyt flaske
 def Stage4():
-    print(4, CheckAngle())
     robot.straight(-300)
-    #robot.turn(CheckAngle() + 90)
     robot.stop()
-    TurnToAngle(-270, 200, 2)
+    TurnToAngle(-270, 200, 0.5)
+    # åben gribearm
     robot.drive(-200, 0)
-    while CheckDist() > 120:
+    while CheckDist() > 105:
         pass
     robot.stop()
     RunForkliftUp()
@@ -210,74 +208,57 @@ def Stage4():
     RunForkliftDown()
     robot.straight(200)
     robot.stop()
+    # luk gribearm
     TurnToAngle(-90, 200, 2)
     robot.straight(-150)
     robot.stop()
-    TurnToAngle(-180, 200, 2)
-    FollowLine(-450, -300)
+    TurnToAngle(-165, 200, 2)
+    FollowLine(-450, -400)
 
 
 # Venstresving over til vippen
 def Stage5():
-    print(5, CheckAngle())
-    robot.straight(-100)
+    robot.straight(-300)
     robot.stop()
-    FollowLine(-450, -300)
+    TurnToAngle(-90, 200, 2)
+    AdjustGyro(7)
+    FollowLine(-130, -110)
+    TurnToAngle(180, 200, 0)
+    while True:
+        robot.drive(400, (CheckAngle() - 180) / 2)
+    robot.stop()
+    TurnToAngle(120, 200, 3)
+
 
 # Vippen
 def Stage6():
-    global stage
-    stage += 1
-    StageControl()
+    pass
 
 # Parallelle streger
 def Stage7():
-    print(7, CheckAngle())
     robot.straight(-100)
     robot.stop()
     FollowLine(-450, -300)
 
 # Venstresving over til dartskive
 def Stage8():
-    print(8, CheckAngle())
     robot.straight(-100)
-    robot.turn(90)
-    robot.stop()
+    root.stop()
+    TurnToAngle(270, 200, 0)
     FollowLine(-450, -400)
 
 # Dartskive
 def Stage9():
-    '''
-    global stage
-    stage += 1
-    StageControl()
-    '''
-    robot.turn()
-    robot.stop()
     FollowLine(-300, -450)
-"""
-Løsning til dartskive:
-Kun hvis ikke followLine kan udføres direkte fra sort linje
-**Drej en bestemt vinkel
-**Kør ligeud indtil followLine kan udføres
-
-Afvent signal fra distancesensor med prædefineret afstand til flaske
-Udfør protokol for at samle flasken op
-Drej til en bestemt vinkel vha gyroskop
-kør en prædefineret længde
-sæt flasken
-lav followLine igen
-"""
 
 # Fra dartskive over til rundt om flasken
 def Stage10():
-    global stage
-    stage += 1
-    StageControl()
+    robot.straight(-100)
+    root.stop()
+    FollowLine(-450, -300)
 
 # Rundt om flasken #1
 def Stage11():
-    print(11, CheckAngle())
     robot.turn(-45)
     robot.drive(-150, 10)
     while True:
@@ -290,7 +271,6 @@ def Stage11():
 
 # Zig-zag rundt om muren
 def Stage12():
-    print(12, CheckAngle())
     robot.straight(-100)
     robot.turn(-85)
     robot.drive(-150, 12)
@@ -304,7 +284,6 @@ def Stage12():
 
 # Rundt om flasken #2
 def Stage13():
-    print(13, CheckAngle())
     robot.straight(-100)
     robot.turn(-55)
     robot.drive(-100, 9)
@@ -319,9 +298,7 @@ def Stage13():
 
 # Landingsbane
 def Stage14():
-    print(14, CheckAngle())
-    robot.turn(25)
-    #robot.turn(CheckAngle() - 180)
+    TurnToAngle(180, 200, 2)
     while True:
         distance = CheckDist()
         robot.drive(100)
