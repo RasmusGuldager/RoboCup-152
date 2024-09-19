@@ -128,12 +128,24 @@ def ApproachLineStraight(speed):
 
 
 def RunForkliftUp():
-    small_motor.run_until_stalled(300, Stop.HOLD, 90)
+    small_motor.run_until_stalled(300, Stop.HOLD, 100)
 
 
 def RunForkliftDown():
-    small_motor.run_until_stalled(-300, Stop.HOLD, 70)
+    small_motor.run_until_stalled(-300, Stop.HOLD, 80)
 
+def FindBottle():
+    global brugbarvar
+    angles = []
+    distances = []
+    robot.drive(0, -10)
+    while CheckAngle() > -280:
+        angles.append(CheckAngle())
+        distances.append(CheckDist())
+        wait(5)
+    robot.stop()
+    brugbarvar = angles[distances.index(min(distances))]
+    TurnToAngle(brugbarvar, 200, 1)
             
 
 # Definér variabler
@@ -141,6 +153,7 @@ stage = 1
 white = 80
 grey = 40
 colorStage = 1
+brugbarvar = 0
 
 # Funktion til at styre hvilket stadie på banen robotten er nået til
 def StageControl():
@@ -178,6 +191,7 @@ def StageControl():
 # Del ét af brudt streg
 def Stage1():
     # Luk gribearm
+    RunForkliftDown()
     AdjustGyro(2)
     FollowLine(-450, -300)
 
@@ -195,55 +209,66 @@ def Stage3():
 
 # Flyt flaske
 def Stage4():
-    robot.straight(-300)
+    global brugbarvar
+    # Approach
+    robot.straight(-250)
     robot.stop()
-    TurnToAngle(-270, 200, 0.5)
-    # åben gribearm
-    robot.drive(-200, 0)
+    TurnToAngle(-240, 200, 2)
+    FindBottle()
+    robot.drive(-200, brugbarvar - CheckAngle())
     while CheckDist() > 105:
         pass
     robot.stop()
+    # Moving the bottle
     RunForkliftUp()
     robot.straight(-250)
     RunForkliftDown()
     robot.straight(200)
     robot.stop()
-    # luk gribearm
+    # Væk fra flasken
     TurnToAngle(-90, 200, 2)
-    robot.straight(-150)
+    robot.straight(-250)
     robot.stop()
-    TurnToAngle(-165, 200, 2)
-    FollowLine(-450, -400)
+    TurnToAngle(-180, 200, 2)
+    FollowLine(-450, -380)
 
 
 # Venstresving over til vippen
 def Stage5():
+    global stage
     robot.straight(-300)
     robot.stop()
     TurnToAngle(-90, 200, 2)
     AdjustGyro(7)
-    FollowLine(-130, -110)
     TurnToAngle(180, 200, 0)
     while True:
-        robot.drive(400, (CheckAngle() - 180) / 2)
-    robot.stop()
-    TurnToAngle(120, 200, 3)
-
+        if CheckColor() > 15:
+            robot.drive(400, 0)
+        else:
+            stage += 1
+            StageControl()
 
 # Vippen
 def Stage6():
-    pass
+    global stage
+    start_time = time.time()
+    gyroSensor.reset_angle(180)
+    while time.time() - start_time < 4:
+        robot.drive(350, (CheckAngle() - 180) / 2)
+    robot.stop()
+    TurnToAngle(90, 200, 3)
+    stage += 1
+    StageControl()
+
 
 # Parallelle streger
 def Stage7():
-    robot.straight(-100)
-    robot.stop()
     FollowLine(-450, -300)
 
 # Venstresving over til dartskive
 def Stage8():
     robot.straight(-100)
-    root.stop()
+    robot.stop()
     TurnToAngle(270, 200, 0)
     FollowLine(-450, -400)
 
