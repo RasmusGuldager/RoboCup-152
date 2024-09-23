@@ -41,8 +41,8 @@ def CheckAngle():
 def ColorControl():
     global white
     global grey
-    global colorStage
     global stage
+    colorStage = 1
     while True:
         if touchSensor.pressed() and colorStage == 1:
             white = CheckColor()
@@ -86,11 +86,11 @@ def AdjustGyro(runtime):
     while time.time() - start_time < runtime:
         color = CheckColor()
         if color >= (white + grey) / 2:
-            right_motor.run(-40)
-            left_motor.run(-36)
+            right_motor.run(-45)
+            left_motor.run(-30)
         elif color < (white + grey) / 2 and color > 15:
-            right_motor.run(-36)
-            left_motor.run(-40)
+            right_motor.run(-30)
+            left_motor.run(-45)
     robot.stop()
     gyroSensor.reset_angle(0)
 
@@ -127,33 +127,55 @@ def ApproachLineStraight(speed):
     robot.stop()
 
 
-def RunForkliftUp():
-    small_motor.run_until_stalled(300, Stop.HOLD, 100)
+def RunForkliftUp(power):
+    small_motor.run_until_stalled(300, Stop.HOLD, power)
 
 
-def RunForkliftDown():
-    small_motor.run_until_stalled(-300, Stop.HOLD, 80)
+def RunForkliftDown(power):
+    small_motor.run_until_stalled(-300, Stop.HOLD, power)
 
-def FindBottle():
-    global brugbarvar
+def FindBottle(speed1, speed2):
+    '''
     angles = []
     distances = []
     robot.drive(0, -10)
     while CheckAngle() > -280:
-        angles.append(CheckAngle())
         distances.append(CheckDist())
-        wait(5)
+        angles.append(CheckAngle())
+        wait(20)
     robot.stop()
-    brugbarvar = angles[distances.index(min(distances))]
+    brugbarvar = angles[distances.index(min(distances))] - 8
     TurnToAngle(brugbarvar, 200, 1)
+    '''
+    global right_motor
+    global left_motor
+    prev_dist = 0
+    switch = True
+    right_motor.run(speed1)
+    left_motor.run(speed2)
+    while True:
+        distance = CheckDist()
+        if distance > prev_dist + 5 and distance < 500:
+            if switch:
+                right_motor.run(speed2)
+                left_motor.run(speed1)
+                switch == False
+            else:
+                right_motor.run(speed1)
+                left_motor.run(speed2)
+                switch == True
+        prev_dist = CheckDist()
+        wait(50)
+        if distance < 105:
+            break
+    robot.stop()
+
             
 
 # Definér variabler
-stage = 1
+stage = 5
 white = 80
 grey = 40
-colorStage = 1
-brugbarvar = 0
 
 # Funktion til at styre hvilket stadie på banen robotten er nået til
 def StageControl():
@@ -191,7 +213,7 @@ def StageControl():
 # Del ét af brudt streg
 def Stage1():
     # Luk gribearm
-    RunForkliftDown()
+    RunForkliftUp(40)
     AdjustGyro(2)
     FollowLine(-450, -300)
 
@@ -209,23 +231,20 @@ def Stage3():
 
 # Flyt flaske
 def Stage4():
-    global brugbarvar
     # Approach
     robot.straight(-250)
     robot.stop()
-    TurnToAngle(-240, 200, 2)
-    FindBottle()
-    robot.drive(-200, brugbarvar - CheckAngle())
-    while CheckDist() > 105:
-        pass
-    robot.stop()
+    TurnToAngle(-250, 200, 2)
+    RunForkliftDown(40)
+    FindBottle(-270, -200)
     # Moving the bottle
-    RunForkliftUp()
+    RunForkliftUp(40)
     robot.straight(-250)
-    RunForkliftDown()
+    RunForkliftDown(40)
     robot.straight(200)
     robot.stop()
     # Væk fra flasken
+    RunForkliftUp(40)
     TurnToAngle(-90, 200, 2)
     robot.straight(-250)
     robot.stop()
@@ -240,96 +259,147 @@ def Stage5():
     robot.stop()
     TurnToAngle(-90, 200, 2)
     AdjustGyro(7)
-    TurnToAngle(180, 200, 0)
     while True:
         if CheckColor() > 15:
-            robot.drive(400, 0)
+            robot.drive(-320, 0)
         else:
             stage += 1
             StageControl()
 
 # Vippen
 def Stage6():
+    global white
+    global grey
     global stage
+    global right_motor
+    global left_motor
+    count = 0
+    robot.straight(-100)
+    robot.stop()
     start_time = time.time()
-    gyroSensor.reset_angle(180)
-    while time.time() - start_time < 4:
-        robot.drive(350, (CheckAngle() - 180) / 2)
+    while count < 0.4 or start_time - time.time() < 4:
+        temp_time = time.time()
+        color = CheckColor()
+        if color >= (white + grey) / 2:
+            right_motor.run(-330)
+            left_motor.run(-300)
+            count += time.time() - temp_time
+        elif color < (white + grey) / 2 and color > 15:
+            right_motor.run(-300)
+            left_motor.run(-330)
+            count = 0
     robot.stop()
     TurnToAngle(90, 200, 3)
-    stage += 1
-    StageControl()
+    FollowLine(-450, -300)
 
 
 # Parallelle streger
 def Stage7():
+    robot.straight(-100)
+    robot.stop()
     FollowLine(-450, -300)
 
 # Venstresving over til dartskive
 def Stage8():
     robot.straight(-100)
     robot.stop()
-    TurnToAngle(270, 200, 0)
-    FollowLine(-450, -400)
+    AdjustGyro(5)
+    TurnToAngle(100, 200, 0.5)
+    FollowLine(-350, -450)
 
 # Dartskive
 def Stage9():
-    FollowLine(-300, -450)
+    robot.straight(-100)
+    robot.stop()
+    TurnToAngle(180, 200, 2)
+
+    # Followline med afstandsbetingelse
+    global white
+    global grey
+    global right_motor
+    global left_motor
+    while CheckDist > 500:
+        color = CheckColor()
+        if color >= (white + grey) / 2:
+            right_motor.run(-300)
+            left_motor.run(-200)
+        elif color < (white + grey) / 2 and color > 15:
+            right_motor.run(-200)
+            left_motor.run(-300)
+
+    FindBottle(-270, -200)
+    RunForkliftUp(40)
+    TurnToAngle(-45, 200, 0.5)
+    robot.straight(-200)
+    RunForkliftDown(40)
+    robot.straight(200)
+    RunForkliftUp(40)
+    robot.stop()
+    TurnToAngle(-100, 200, 0.5)
+    FollowLine(-300, -250)
 
 # Fra dartskive over til rundt om flasken
 def Stage10():
     robot.straight(-100)
-    root.stop()
-    FollowLine(-450, -300)
+    robot.stop()
+    FollowLine(-450, -350)
 
 # Rundt om flasken #1
 def Stage11():
-    robot.turn(-45)
+    robot.straight(-50)
+    robot.stop()
+    AdjustGyro(3)
+    TurnToAngle(-45, 200, 3)
     robot.drive(-150, 10)
     while True:
         color = CheckColor()
         if color < white - 20:
+            wait(200)
             robot.turn(-20)
             robot.stop()
-            FollowLine(-450, -300)
             break
+    FollowLine(-450, -300)
 
 # Zig-zag rundt om muren
 def Stage12():
     robot.straight(-100)
-    robot.turn(-85)
-    robot.drive(-150, 12)
+    TurnToAngle(-260, 200, 3)
+    robot.drive(-170, 12)
     while True:
         color = CheckColor()
         if color < white - 20:
+            wait(200)
             robot.turn(-30)
             robot.stop()
-            FollowLine(-450, -300)
             break
+    FollowLine(-450, -300)
 
 # Rundt om flasken #2
 def Stage13():
     robot.straight(-100)
-    robot.turn(-55)
+    TurnToAngle(-230, 200, 3)
     robot.drive(-100, 9)
     while True:
         color = CheckColor()
         if color < white - 20:
             robot.straight(-150)
             robot.stop()
-            #AdjustGyro()
-            FollowLine(-450, -300)
             break
+    FollowLine(-450, -300)
 
 # Landingsbane
 def Stage14():
-    TurnToAngle(180, 200, 2)
+    TurnToAngle(0, 200, 2)
+    robot.straight(-20)
+    robot.stop()
+    AdjustGyro(4)
     while True:
         distance = CheckDist()
-        robot.drive(100)
-        if distance > 1250:
+        robot.drive(200, CheckAngle())
+        if distance < 1250:
             robot.stop()
             break
+
 
 
 StageControl()
