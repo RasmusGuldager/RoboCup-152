@@ -97,25 +97,25 @@ def AdjustGyro(runtime):
 
 
 def TurnToAngle(angle, speed, epsilon):
-    if angle < gyroSensor.angle():
+    if angle < CheckAngle():
         left_motor.run(-speed)
         right_motor.run(speed)
-        while angle < gyroSensor.angle():
-            pass
+        while angle < CheckAngle():
+            wait(20)
 
-    elif angle > gyroSensor.angle():
+    elif angle > CheckAngle():
         left_motor.run(speed)
         right_motor.run(-speed)
-        while angle > gyroSensor.angle():
-            pass
+        while angle > CheckAngle():
+            wait(20)
     
     left_motor.hold()
     right_motor.hold()
  
     wait(150)
-    if angle > gyroSensor.angle() + epsilon:
+    if angle > CheckAngle() + epsilon:
         TurnToAngle(angle, speed * 0.33, epsilon)
-    elif angle < gyroSensor.angle() - epsilon:
+    elif angle < CheckAngle() - epsilon:
         TurnToAngle(angle, speed * 0.33, epsilon)
 
 
@@ -164,26 +164,23 @@ def FindBottle():
     angles = []
     while True:
         distance = CheckDist()
-        print("stage1", distance)
         if distance < 300:
             ev3.speaker.beep()
-            print(distance, "wow1")
             angles.append(CheckAngle())
             break
         wait(50)
-        robot.turn(-1)
+        robot.turn(-2)
         wait(50)
-    robot.turn(-30)
+    robot.turn(-50)
+    wait(1000)
     while True:
         distance = CheckDist()
-        print("stage2", distance)
         if distance < 300:
             ev3.speaker.beep()
-            print(distance, "wow1")
             angles.append(CheckAngle())
             break
         wait(50)
-        robot.turn(1)
+        robot.turn(2)
         wait(50)
     robot.stop()
     return (angles[0] + angles[1]) / 2
@@ -232,17 +229,19 @@ def Stage1():
     # Luk gribearm
     RunForkliftUp(40)
     AdjustGyro(2)
-    FollowLine(-450, -300)
+    FollowLine(-450, -400)
 
 # Del to af brudt streg
 def Stage2():
-    TurnToAngle(-30, 200, 5)
+    robot.turn(-40)
+    robot.stop()
     ApproachLineStraight(-200)
-    FollowLine(-300, -450)
+    FollowLine(-350, -450)
 
 # 180 grader sving
 def Stage3():
-    TurnToAngle(30, 200, 2)
+    robot.turn(30)
+    robot.stop()
     ApproachLineStraight(-200)
     FollowLine(-450, -300)
 
@@ -251,29 +250,35 @@ def Stage4():
     # Approach
     robot.straight(-270)
     robot.stop()
-    TurnToAngle(-270, 200, 2)
-    RunForkliftDown(40)
+    TurnToAngle(-270, 200, 0.5)
+    RunForkliftDown(45)
+    robot.drive(-180, 0)
+    '''
     robot.straight(-120)
     robot.stop()
-    TurnToAngle(-250, 200, 2)
+    TurnToAngle(-230, 200, 2)
     angle_avg = FindBottle()
     TurnToAngle(angle_avg, 100, 1)
     robot.drive(-80, 0)
     while CheckDist() > 85:
         pass
     robot.stop()
+    '''
+    while CheckDist() > 85:
+        wait(50)
+    robot.stop()
     # Moving the bottle
-    RunForkliftUp(60)
+    RunForkliftUp(90)
     robot.straight(-250)
-    RunForkliftDown(40)
+    RunForkliftDown(65)
     robot.straight(200)
     robot.stop()
     # Væk fra flasken
-    RunForkliftUp(40)
     TurnToAngle(-90, 200, 2)
     robot.straight(-250)
     robot.stop()
     TurnToAngle(-180, 200, 2)
+    RunForkliftUp(40)
     FollowLine(-450, -380)
 
 
@@ -283,7 +288,7 @@ def Stage5():
     robot.straight(-300)
     robot.stop()
     TurnToAngle(-90, 200, 2)
-    AdjustGyro(7)
+    gyroSensor.reset_angle(0)
     while True:
         if CheckColor() > 15:
             robot.drive(-320, 0)
@@ -315,48 +320,33 @@ def Stage6():
             count = 0
     robot.stop()
     TurnToAngle(90, 200, 3)
-    FollowLine(-450, -300)
+    FollowLine(-450, -400)
 
 
 # Parallelle streger
 def Stage7():
     robot.straight(-100)
     robot.stop()
-    FollowLine(-450, -300)
+    FollowLine(-400, -300)
 
 # Venstresving over til dartskive
 def Stage8():
     robot.straight(-100)
     robot.stop()
-    AdjustGyro(5)
+    AdjustGyro(1)
+    robot.straight(-200)
+    robot.stop()
     TurnToAngle(90, 200, 3)
-    FollowLine(-350, -450)
+    FollowLine(-370, -350)
 
 # Dartskive
 def Stage9():
-    TurnToAngle(90, 200, 0)
-    robot.straight(-650)
+    AdjustGyro(3)
+    #TurnToAngle(90, 200, 0.5)
+    robot.straight(-540)
     robot.stop()
-    TurnToAngle(120, 200, 2)
-    RunForkliftDown(40)
-    robot.straight(-200)
-    robot.turn(10)
-    '''
-    # Followline med afstandsbetingelse
-    robot.straight(-150)
-    robot.stop()
-    global white
-    global grey
-    global right_motor
-    global left_motor
-    while CheckDist() > 500:
-        color = CheckColor()
-        if color >= (white + grey) / 2:
-            right_motor.run(-300)
-            left_motor.run(-200)
-        elif color < (white + grey) / 2 and color > 15:
-            right_motor.run(-200)
-            left_motor.run(-300)
+    TurnToAngle(120 - 90, 200, 2)
+    RunForkliftDown(45)
     '''
     angle_avg = FindBottle()
     TurnToAngle(angle_avg, 100, 1)
@@ -364,15 +354,19 @@ def Stage9():
     while CheckDist() > 85:
         pass
     robot.stop()
-    RunForkliftUp(40)
-    robot.straight(550)
-    RunForkliftDown(40)
+    '''
+    robot.drive(-150, 0)
+    while CheckDist() > 85:
+        wait(50)
+    robot.stop()
+
+    RunForkliftUp(90)
+    robot.straight(540)
+    RunForkliftDown(65)
     robot.straight(200)
     robot.stop()
-    TurnToAngle(240, 200, 1)
-    RunForkliftUp(40)
-    robot.straight(-200)
-    robot.stop()
+    TurnToAngle(230 - 90, 200, 3)
+    RunForkliftUp(30)
     global stage
     stage += 1
     StageControl()
@@ -380,22 +374,24 @@ def Stage9():
 
 # Fra dartskive over til rundt om flasken
 def Stage10():
+    ApproachLineStraight(-200)
     count = 0
     start_time = time.time()
     while count < 0.5 or time.time() - start_time < 3:
         temp_time = time.time()
         color = CheckColor()
         if color >= (white + grey) / 2:
-            right_motor.run(-200)
-            left_motor.run(-250)
+            right_motor.run(-300)
+            left_motor.run(-450)
             count += time.time() - temp_time
         elif color < (white + grey) / 2 and color > 15:
-            right_motor.run(-250)
-            left_motor.run(-200)
+            right_motor.run(-450)
+            left_motor.run(-300)
             count = 0
     robot.stop()
 
-    TurnToAngle(240, 200, 0.5)
+    TurnToAngle(360 - 90, 200, 3)
+    FollowLine(-450, -300)
 
 # Rundt om flasken #1
 def Stage11():
@@ -403,21 +399,22 @@ def Stage11():
     robot.stop()
     AdjustGyro(3)
     TurnToAngle(-45, 200, 3)
-    robot.drive(-150, 10)
+    robot.drive(-150, 12)
     while True:
         color = CheckColor()
         if color < white - 20:
-            wait(500)
-            robot.turn(-40)
+            wait(1000)
+            robot.turn(-80)
             robot.stop()
             break
-    FollowLine(-450, -300)
+    FollowLine(-440, -280)
 
 # Zig-zag rundt om muren
 def Stage12():
     robot.straight(-100)
+    robot.stop()
     TurnToAngle(-260, 200, 3)
-    robot.drive(-170, 12)
+    robot.drive(-170, 15)
     while True:
         color = CheckColor()
         if color < white - 20:
