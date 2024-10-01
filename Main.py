@@ -19,6 +19,7 @@ small_motor = Motor(Port.C)
 
 # En drivebase for robotten initialiseres
 robot = DriveBase(left_motor, right_motor, wheel_diameter=70, axle_track=135)
+robot.settings(straight_acceleration = 400)
 
 # Afstandssensor og farvesensor initialiseres
 colorSensor = ColorSensor(Port.S1)
@@ -248,11 +249,11 @@ def Stage3():
 # Flyt flaske
 def Stage4():
     # Approach
-    robot.straight(-270)
+    robot.straight(-280)
     robot.stop()
-    TurnToAngle(-270, 200, 0.5)
+    TurnToAngle(-268, 200, 0.5)
     RunForkliftDown(45)
-    robot.drive(-180, 0)
+    robot.drive(-130, 0)
     '''
     robot.straight(-120)
     robot.stop()
@@ -289,12 +290,7 @@ def Stage5():
     robot.stop()
     TurnToAngle(-90, 200, 2)
     gyroSensor.reset_angle(0)
-    while True:
-        if CheckColor() > 15:
-            robot.drive(-320, 0)
-        else:
-            stage += 1
-            StageControl()
+    FollowLine(-350, -300)
 
 # Vippen
 def Stage6():
@@ -345,7 +341,7 @@ def Stage9():
     #TurnToAngle(90, 200, 0.5)
     robot.straight(-540)
     robot.stop()
-    TurnToAngle(120 - 90, 200, 2)
+    TurnToAngle(122 - 90, 200, 2)
     RunForkliftDown(45)
     '''
     angle_avg = FindBottle()
@@ -355,7 +351,7 @@ def Stage9():
         pass
     robot.stop()
     '''
-    robot.drive(-150, 0)
+    robot.drive(-100, 0)
     while CheckDist() > 85:
         wait(50)
     robot.stop()
@@ -366,7 +362,7 @@ def Stage9():
     robot.straight(200)
     robot.stop()
     TurnToAngle(230 - 90, 200, 3)
-    RunForkliftUp(30)
+    RunForkliftUp(45)
     global stage
     stage += 1
     StageControl()
@@ -398,58 +394,77 @@ def Stage11():
     robot.straight(-50)
     robot.stop()
     AdjustGyro(3)
-    TurnToAngle(-45, 200, 3)
-    robot.drive(-150, 12)
-    while True:
-        color = CheckColor()
-        if color < white - 20:
-            wait(1000)
-            robot.turn(-80)
-            robot.stop()
-            break
-    FollowLine(-440, -280)
+    TurnToAngle(-50, 200, 3)
+    ApproachLineStraight(-200)
+    robot.straight(-200)
+    robot.stop()
+    TurnToAngle(-175, 200, 1)
+    FollowLine(-250, -220)
 
 # Zig-zag rundt om muren
 def Stage12():
-    robot.straight(-100)
+    robot.straight(-30)
     robot.stop()
-    TurnToAngle(-260, 200, 3)
-    robot.drive(-170, 15)
+    AdjustGyro(3.5)
+    robot.straight(-380)
+    robot.stop()
+    TurnToAngle(40, 150, 1)
+    robot.straight(-75)
+    robot.drive(-120, -16)
+    wait(4500)
+    robot.stop()
+    TurnToAngle(-15, 200, 2)
+    FollowLine(-300, -250)
+
+    '''TurnToAngle(-260, 200, 3)
+    robot.drive(-180, 15)
     while True:
         color = CheckColor()
         if color < white - 20:
-            wait(200)
-            robot.turn(-30)
+            wait(300)
+            robot.turn(-90)
             robot.stop()
             break
-    FollowLine(-450, -300)
+    FollowLine(-450, -300)'''
 
 # Rundt om flasken #2
 def Stage13():
     robot.straight(-100)
-    TurnToAngle(-230, 200, 3)
+    robot.stop()
+    TurnToAngle(-50, 200, 3)
     robot.drive(-100, 9)
     while True:
         color = CheckColor()
         if color < white - 20:
-            robot.straight(-150)
+            robot.straight(-200)
             robot.stop()
             break
-    FollowLine(-450, -300)
+    FollowLine(-300, -200)
 
 # Landingsbane
 def Stage14():
-    TurnToAngle(0, 200, 2)
-    robot.straight(-20)
+    #TurnToAngle(180, 200, 2)
+    #AdjustGyro(3)
+    TurnToAngle(160, 200, 2)
+    robot.straight(-200)
     robot.stop()
-    AdjustGyro(4)
+    TurnToAngle(180, 200, 1)
+    RunForkliftDown(45)
+
     while True:
-        distance = CheckDist()
-        robot.drive(200, CheckAngle())
-        if distance < 1250:
-            robot.stop()
+        color = CheckColor()
+        if color >= (white + grey) / 2:
+            right_motor.run(-380)
+            left_motor.run(-400)
+        elif color < (white + grey) / 2 and color > 15:
+            right_motor.run(-400)
+            left_motor.run(-380)
+        if CheckDist() < 1250:
             break
 
+    robot.stop()
+    RunForkliftUp(45)
+    ev3.speaker.say('Wall-E')
 
 
 StageControl()
