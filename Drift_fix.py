@@ -138,15 +138,22 @@ def TurnToAngleFailState(angle, speed, epsilon):
 
 
 
-
+isTurningToAngle = False
+turnToAngleStartTime = 0
 def TurnToAngle(angle, speed, epsilon):
-    startTime = time.time()
+    global isTurningToAngle
+    global turnToAngleStartTime
+    if isTurningToAngle == True:
+        turnToAngleStartTime = time.time()
+        
+    isTurningToAngle = True
+    #startTime = time.time()
     maxTime = 10
     if angle < CheckAngle():
         left_motor.run(-speed)
         right_motor.run(speed)
         while angle < CheckAngle():
-            if time.time() - startTime < maxTime:
+            if time.time() - turnToAngleStartTime > maxTime:
                 TurnToAngleFailState(angle, speed, epsilon)
                 return
             wait(20)
@@ -155,7 +162,7 @@ def TurnToAngle(angle, speed, epsilon):
         left_motor.run(speed)
         right_motor.run(-speed)
         while angle > CheckAngle():
-            if time.time() - startTime < maxTime:
+            if time.time() - turnToAngleStartTime > maxTime:
                 TurnToAngleFailState(angle, speed, epsilon)
                 return
             wait(20)
@@ -166,8 +173,11 @@ def TurnToAngle(angle, speed, epsilon):
     wait(150)
     if angle > CheckAngle() + epsilon:
         TurnToAngle(angle, speed * 0.33, epsilon)
+        return
     elif angle < CheckAngle() - epsilon:
         TurnToAngle(angle, speed * 0.33, epsilon)
+        return
+    isTurningToAngle = False
 
 
 def ApproachLineStraight(speed):
