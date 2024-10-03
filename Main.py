@@ -318,7 +318,7 @@ def Stage6():
         elif color < (white + grey) / 2 and color > 15:
             right_motor.run(-400)
             left_motor.run(-300)
-        if time.time() - start_time > 6:
+        if time.time() - start_time > 11:
             robot.stop()
             break
     TurnToAngle(CheckAngle() + 180, 200, 3)
@@ -456,7 +456,7 @@ def Stage14():
         elif color < (white + grey) / 2 and color > 15:
             right_motor.run(-400)
             left_motor.run(-370)
-        if CheckDist() < 1450 and time.time() - start_time > 4:
+        if CheckDist() < 1400 and time.time() - start_time > 4:
             robot.stop()
             break
 
