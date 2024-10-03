@@ -34,18 +34,8 @@ def CheckColor():
 def CheckDist():
     return distanceSensor.distance()
 
-gyroDriftRate = 0
 def CheckAngle():
-    global isDrifting
-    global gyroResetTime
-    global gyroDriftRate
-
-    if isDrifting == False:
-        return gyroSensor.angle()
-    else:
-        antidrift = (time.time() - gyroResetTime) * gyroDriftRate
-        return gyroSensor.angle() - antidrift
-
+    return gyroSensor.angle()
 
 
 # Funktion som bruges til at kalibrere robottens farvesensor efter farverne på banen
@@ -87,7 +77,6 @@ def FollowLine(speed1, speed2):
     StageControl()
 
 
-
 def AdjustGyro(runtime):
     global white
     global grey
@@ -104,60 +93,21 @@ def AdjustGyro(runtime):
             right_motor.run(-30)
             left_motor.run(-45)
     robot.stop()
-    #gyroSensor.reset_angle(0)
-    ResetGyro(0)
-
-gyroResetTime = 0
-def ResetGyro(angle):
-    global gyroResetTime
-
-    gyroSensor.reset_angle(angle)
-    gyroResetTime = time.time()
-
-
-isDrifting = False
-def TurnToAngleFailState(angle, speed, epsilon):
-    global gyroDriftRate
-    global isDrifting
-
-    left_motor.hold()
-    right_motor.hold()
-    wait(200)
-
-    startAngle = CheckAngle()
-    #startMeasureTime = time.time()
-    wait(1000)
-    endAngle = CheckAngle()
-    #endMeasureTime = time.time()
-
-    #elapsedTime = endMeasureTime - startMeasureTime
-    gyroDriftRate = endAngle - startAngle
-
-    isDrifting = True
-    TurnToAngle(angle,speed,epsilon)
-
+    gyroSensor.reset_angle(0)
 
 
 
 def TurnToAngle(angle, speed, epsilon):
-    startTime = time.time()
-    maxTime = 10
     if angle < CheckAngle():
         left_motor.run(-speed)
         right_motor.run(speed)
         while angle < CheckAngle():
-            if time.time() - startTime < maxTime:
-                TurnToAngleFailState(angle, speed, epsilon)
-                return
             wait(20)
 
     elif angle > CheckAngle():
         left_motor.run(speed)
         right_motor.run(-speed)
         while angle > CheckAngle():
-            if time.time() - startTime < maxTime:
-                TurnToAngleFailState(angle, speed, epsilon)
-                return
             wait(20)
     
     left_motor.hold()
@@ -301,8 +251,7 @@ def Stage4():
     # Approach
     TurnToAngle(-180, 100, 1)
     AdjustGyro(2)
-    #gyroSensor.reset_angle(-180)
-    ResetGyro(-180)
+    gyroSensor.reset_angle(-180)
     robot.straight(-225)
     robot.stop()
     TurnToAngle(-270, 150, 0.5)
@@ -332,8 +281,7 @@ def Stage5():
     robot.straight(-300)
     robot.stop()
     TurnToAngle(-90, 200, 2)
-    #gyroSensor.reset_angle(0)
-    ResetGyro(0)
+    gyroSensor.reset_angle(0)
     FollowLine(-350, -300)
 
 # Vippen
