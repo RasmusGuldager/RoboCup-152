@@ -19,7 +19,7 @@ small_motor = Motor(Port.C)
 
 # En drivebase for robotten initialiseres
 robot = DriveBase(left_motor, right_motor, wheel_diameter=70, axle_track=135)
-robot.settings(straight_acceleration = 400)
+robot.settings(straight_acceleration = 250)
 
 # Afstandssensor og farvesensor initialiseres
 colorSensor = ColorSensor(Port.S1)
@@ -241,7 +241,7 @@ def Stage2():
 
 # 180 grader sving
 def Stage3():
-    robot.turn(30)
+    robot.turn(40)
     robot.stop()
     ApproachLineStraight(-200)
     FollowLine(-450, -300)
@@ -249,23 +249,15 @@ def Stage3():
 # Flyt flaske
 def Stage4():
     # Approach
-    robot.straight(-280)
+    TurnToAngle(-180, 100, 1)
+    AdjustGyro(2)
+    gyroSensor.reset_angle(-180)
+    robot.straight(-225)
     robot.stop()
-    TurnToAngle(-268, 200, 0.5)
+    TurnToAngle(-270, 150, 0.5)
     RunForkliftDown(45)
-    robot.drive(-130, 0)
-    '''
-    robot.straight(-120)
-    robot.stop()
-    TurnToAngle(-230, 200, 2)
-    angle_avg = FindBottle()
-    TurnToAngle(angle_avg, 100, 1)
-    robot.drive(-80, 0)
-    while CheckDist() > 85:
-        pass
-    robot.stop()
-    '''
-    while CheckDist() > 85:
+    robot.drive(-70, 0)
+    while CheckDist() > 60:
         wait(50)
     robot.stop()
     # Moving the bottle
@@ -278,7 +270,7 @@ def Stage4():
     TurnToAngle(-90, 200, 2)
     robot.straight(-250)
     robot.stop()
-    TurnToAngle(-180, 200, 2)
+    TurnToAngle(-180, 200, 4)
     RunForkliftUp(40)
     FollowLine(-450, -380)
 
@@ -315,8 +307,22 @@ def Stage6():
             left_motor.run(-330)
             count = 0
     robot.stop()
-    TurnToAngle(90, 200, 3)
-    FollowLine(-450, -400)
+    TurnToAngle(-90, 200, 3)
+
+    start_time = time.time()
+    while True:
+        color = CheckColor()
+        if color >= (white + grey) / 2:
+            right_motor.run(-300)
+            left_motor.run(-400)
+        elif color < (white + grey) / 2 and color > 15:
+            right_motor.run(-400)
+            left_motor.run(-300)
+        if time.time() - start_time > 6:
+            robot.stop()
+            break
+    TurnToAngle(CheckAngle() + 180, 200, 3)
+    FollowLine(-400, -300)
 
 
 # Parallelle streger
@@ -337,22 +343,15 @@ def Stage8():
 
 # Dartskive
 def Stage9():
-    AdjustGyro(3)
+    AdjustGyro(2.5)
     #TurnToAngle(90, 200, 0.5)
     robot.straight(-540)
     robot.stop()
-    TurnToAngle(122 - 90, 200, 2)
+    TurnToAngle(120 - 90, 100, 2)
     RunForkliftDown(45)
-    '''
-    angle_avg = FindBottle()
-    TurnToAngle(angle_avg, 100, 1)
-    robot.drive(-80, 0)
-    while CheckDist() > 85:
-        pass
-    robot.stop()
-    '''
-    robot.drive(-100, 0)
-    while CheckDist() > 85:
+    
+    robot.drive(-70, 0)
+    while CheckDist() > 70:
         wait(50)
     robot.stop()
 
@@ -361,7 +360,7 @@ def Stage9():
     RunForkliftDown(65)
     robot.straight(200)
     robot.stop()
-    TurnToAngle(230 - 90, 200, 3)
+    TurnToAngle(240 - 90, 200, 3)
     RunForkliftUp(45)
     global stage
     stage += 1
@@ -387,7 +386,7 @@ def Stage10():
     robot.stop()
 
     TurnToAngle(360 - 90, 200, 3)
-    FollowLine(-450, -300)
+    FollowLine(-400, -300)
 
 # Rundt om flasken #1
 def Stage11():
@@ -409,11 +408,12 @@ def Stage12():
     robot.straight(-380)
     robot.stop()
     TurnToAngle(40, 150, 1)
-    robot.straight(-75)
-    robot.drive(-120, -16)
-    wait(4500)
+    robot.straight(-100)
     robot.stop()
-    TurnToAngle(-15, 200, 2)
+    robot.drive(-170, -28)
+    wait(3800)
+    robot.stop()
+    TurnToAngle(0, 200, 2)
     FollowLine(-300, -250)
 
     '''TurnToAngle(-260, 200, 3)
@@ -432,37 +432,39 @@ def Stage13():
     robot.straight(-100)
     robot.stop()
     TurnToAngle(-50, 200, 3)
-    robot.drive(-100, 9)
+    robot.drive(-180, 18)
     while True:
         color = CheckColor()
         if color < white - 20:
-            robot.straight(-200)
-            robot.stop()
             break
+    robot.stop()
     FollowLine(-300, -200)
 
 # Landingsbane
 def Stage14():
-    #TurnToAngle(180, 200, 2)
-    #AdjustGyro(3)
     TurnToAngle(160, 200, 2)
     robot.straight(-200)
     robot.stop()
-    TurnToAngle(180, 200, 1)
+    TurnToAngle(180, 200, 3)
     RunForkliftDown(45)
-
+    start_time = time.time()
     while True:
         color = CheckColor()
         if color >= (white + grey) / 2:
-            right_motor.run(-380)
+            right_motor.run(-370)
             left_motor.run(-400)
         elif color < (white + grey) / 2 and color > 15:
             right_motor.run(-400)
-            left_motor.run(-380)
-        if CheckDist() < 1250:
+            left_motor.run(-370)
+        if CheckDist() < 1450 and time.time() - start_time > 4:
+            robot.stop()
             break
 
+    TurnToAngle(270, 100, 0)
+    robot.straight(-100)
     robot.stop()
+    TurnToAngle(180, 100, 1)
+
     RunForkliftUp(45)
     ev3.speaker.say('Wall-E')
 
