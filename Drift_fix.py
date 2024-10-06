@@ -143,7 +143,7 @@ turnToAngleStartTime = 0
 def TurnToAngle(angle, speed, epsilon):
     global isTurningToAngle
     global turnToAngleStartTime
-    if isTurningToAngle == True:
+    if not isTurningToAngle:
         turnToAngleStartTime = time.time()
         
     isTurningToAngle = True

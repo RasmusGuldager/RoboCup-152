@@ -119,6 +119,8 @@ def TurnToAngle(angle, speed, epsilon):
     elif angle < CheckAngle() - epsilon:
         TurnToAngle(angle, speed * 0.33, epsilon)
 
+    robot.stop()
+
 
 def ApproachLineStraight(speed):
     global grey
@@ -251,10 +253,9 @@ def Stage4():
     # Approach
     TurnToAngle(-180, 100, 1)
     AdjustGyro(2)
-    gyroSensor.reset_angle(-180)
     robot.straight(-225)
     robot.stop()
-    TurnToAngle(-270, 150, 0.5)
+    TurnToAngle(-90, 150, 0.5)
     RunForkliftDown(45)
     robot.drive(-70, 0)
     while CheckDist() > 60:
@@ -267,10 +268,10 @@ def Stage4():
     robot.straight(200)
     robot.stop()
     # Væk fra flasken
-    TurnToAngle(-90, 200, 2)
+    TurnToAngle(90, 200, 2)
     robot.straight(-250)
     robot.stop()
-    TurnToAngle(-180, 200, 4)
+    TurnToAngle(0, 200, 4)
     RunForkliftUp(40)
     FollowLine(-450, -380)
 
@@ -280,7 +281,7 @@ def Stage5():
     global stage
     robot.straight(-300)
     robot.stop()
-    TurnToAngle(-90, 200, 2)
+    TurnToAngle(90, 200, 2)
     gyroSensor.reset_angle(0)
     FollowLine(-350, -300)
 
@@ -407,11 +408,11 @@ def Stage12():
     AdjustGyro(3.5)
     robot.straight(-380)
     robot.stop()
-    TurnToAngle(40, 150, 1)
-    robot.straight(-100)
+    TurnToAngle(40, 100, 1)
+    robot.straight(-120)
     robot.stop()
     robot.drive(-170, -28)
-    wait(3800)
+    wait(3500)
     robot.stop()
     TurnToAngle(0, 200, 2)
     FollowLine(-300, -250)
