@@ -190,7 +190,7 @@ def FindBottle():
 
 
 # Definér variabler
-stage = 1
+stage = 0
 white = 80
 grey = 40
 

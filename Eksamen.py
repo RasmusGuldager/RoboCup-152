@@ -102,6 +102,11 @@ def TurnToAngle(angle, speed, epsilon):
 
     robot.stop()
 
+def RunForkliftUp(power):
+    small_motor.run_until_stalled(300, Stop.HOLD, power)
+
+def RunForkliftDown(power):
+    small_motor.run_until_stalled(-300, Stop.HOLD, power)
 
 
 # Definér variabler
@@ -122,9 +127,12 @@ def StageControl():
 
 # Del ét af brudt streg
 def Stage1():
-    gyroSensor.reset_angle(0)
+    global white
+    global grey
     global stage
-    while count < 0.5:
+    gyroSensor.reset_angle(0)
+    count = 0
+    while count < 0.4:
         temp_time = time.time()
         color = CheckColor()
         if color >= (white + grey) / 2:
@@ -137,7 +145,8 @@ def Stage1():
             count = 0
     robot.stop()
     TurnToAngle(-90, 100, 2)
-    FollowLine(-300, -400)
+    stage += 1
+    StageControl()
 
 
 def Stage2():
@@ -146,15 +155,20 @@ def Stage2():
 
 
 def Stage3():
+    global white
+    global grey
     wait(100)
+    RunForkliftDown(45)
     while True:
         color = CheckColor()
         if color >= (white + grey) / 2:
-            right_motor.run(-300)
-            left_motor.run(-370)
-        elif color < (white + grey) / 2 and color > 15:
-            right_motor.run(-370)
+            right_motor.run(-250)
             left_motor.run(-300)
-        if CheckDist() < 300:
+        elif color < (white + grey) / 2 and color > 15:
+            right_motor.run(-300)
+            left_motor.run(-250)
+        if CheckDist() < 80:
             robot.stop()
             break
+
+StageControl()
